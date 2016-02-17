@@ -1,0 +1,10 @@
+chef-server.rpm
+chef.rpm
+chefdk.rpm
+vagrant.rpm
+
+.chef/*.pem
+.chef/trusted_certs/*.crt
+
+clients/*.pem
+cookbooks/*

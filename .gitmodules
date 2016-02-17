@@ -1,0 +1,3 @@
+[submodule "site-cookbooks/ecology-cluster"]
+	path = site-cookbooks/ecology-cluster
+	url = https://github.com/dmlb2000/ecology-cluster.git
