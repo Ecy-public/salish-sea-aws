@@ -1,9 +1,12 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+cluster = ENV['ECOLOGY_CLUSTER_NAME']
+cluster = 'a' unless cluster
+
 Vagrant.configure(2) do |config|
   config.vm.define "mgmt" do |mgmt|
-    mgmt.vm.box = "opscode-centos-7.2"
+    mgmt.vm.box = "bento/centos-7.2"
     mgmt.vm.network "private_network", ip: "192.168.33.254"
     mgmt.vm.hostname = "mgmt"
     mgmt.vm.provider "virtualbox" do |vb|
@@ -18,7 +21,7 @@ Vagrant.configure(2) do |config|
       fi
 
       yum -y update
-      yum -y install /vagrant/chef-server.rpm /vagrant/vagrant.rpm /vagrant/chefdk.rpm
+      yum -y install /vagrant/chef-server.rpm /vagrant/vagrant.rpm /vagrant/chefdk.rpm vim
       chef-server-ctl reconfigure
       chef-server-ctl user-create admin admin admin dmlb2000@gmail.com password --filename /vagrant/.chef/admin.pem
       chef-server-ctl org-create ecology 'Ecology Organization' --filename /vagrant/.chef/chef-validator.pem
@@ -29,6 +32,7 @@ Vagrant.configure(2) do |config|
         su - vagrant -c 'cd /vagrant; knife client create n'${node}' -d > clients/n'${node}'.pem'
       done
       su - vagrant -c 'cd /vagrant; knife client create head -d > clients/head.pem'
+      su - vagrant -c 'cd /vagrant; HOME=/vagrant knife upload /'
     SHELL
   end
 
@@ -42,33 +46,37 @@ Vagrant.configure(2) do |config|
     cp -r /root/.chef/trusted_certs /etc/chef/
     cat /vagrant/clients/@@NODE@@.pem > /etc/chef/client.pem
     if knife node show -s https://mgmt/organizations/ecology -u @@NODE@@ @@NODE@@ ; then
-      knife node delete -s https://mgmt/organizations/ecology -u @@NODE@@ @@NODE@@
+      knife node delete -s https://mgmt/organizations/ecology --yes -u @@NODE@@ @@NODE@@
     fi
     knife node create -s https://mgmt/organizations/ecology -u @@NODE@@ -d @@NODE@@
-    chef-client -S https://mgmt/organizations/ecology
+    chef-client -S https://mgmt/organizations/ecology -r 'role[cluster-@@CLUSTER@@],recipe[ecology-cluster::@@RECIPE@@]'
   SHELL
 
   config.vm.define "head" do |head|
-    head.vm.box = "opscode-centos-7.2"
+    head.vm.box = "bento/centos-7.2"
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head"
     head.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
-    head.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "head")
+    head.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "head")\
+                                                   .gsub(/@@CLUSTER@@/, cluster)\
+                                                   .gsub(/@@RECIPE@@/, 'head')
   end
 
   # this is a bit complicated but it produces array ["0", "1",..."3"]
   suffixes = (0..3).to_a
   suffixes.each do |x|
     config.vm.define "n#{x}" do |node|
-      node.vm.box = "opscode-centos-7.2"
-      node.vm.network "private_network", ip: "192.168.33.#{x+1}"
+      node.vm.box = "bento/centos-7.2"
+      node.vm.network "private_network", ip: "192.168.33.#{x+10}"
       node.vm.hostname = "n#{x}"
       node.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
       end
-      node.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "n#{x}")
+      node.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "n#{x}")\
+                                                     .gsub(/@@CLUSTER@@/, cluster)\
+                                                     .gsub(/@@RECIPE@@/, 'compute')
     end
   end
 end

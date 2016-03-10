@@ -3,8 +3,12 @@ chef.rpm
 chefdk.rpm
 vagrant.rpm
 
+encrypted_data_bag_secret
+
 .chef/*.pem
 .chef/trusted_certs/*.crt
 
 clients/*.pem
 cookbooks/*
+
+.vagrant
