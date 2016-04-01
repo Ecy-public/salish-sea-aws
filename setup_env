@@ -1,0 +1,11 @@
+#!/bin/bash
+read -p "AWS Key ID: " AWS_KEY_ID
+export AWS_KEY_ID
+read -p "AWS Access Key: " AWS_ACCESS_KEY
+export AWS_ACCESS_KEY
+read -p "AWS Session Token: " AWS_SESSION_TOKEN
+export AWS_SESSION_TOKEN
+read -p "AWS SSH Keypair Name: " AWS_KEYPAIR_NAME
+export AWS_KEYPAIR_NAME
+read -p "AWS SSH Private Key Path: " AWS_PRIVATE_KEY_PATH
+export AWS_PRIVATE_KEY_PATH

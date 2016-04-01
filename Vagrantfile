@@ -10,16 +10,16 @@ Vagrant.configure(2) do |config|
     mgmt.vm.network "private_network", ip: "192.168.33.254"
     mgmt.vm.hostname = "mgmt"
     mgmt.vm.provider :aws do |aws, override|
-      aws.access_key_id = ENV[:AWS_KEY_ID]
-      aws.secret_access_key = ENV[:AWS_ACCESS_KEY]
-      aws.session_token = ENV[:AWS_SESSION_TOKEN]
-      aws.keypair_name = ENV[:AWS_KEYPAIR_NAME]
+      aws.access_key_id = ENV['AWS_KEY_ID']
+      aws.secret_access_key = ENV['AWS_ACCESS_KEY']
+      aws.session_token = ENV['AWS_SESSION_TOKEN']
+      aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
       aws.instance_type = "m3.medium"
       aws.ami = "ami-d2c924b2"
       aws.region = 'us-west-2'
       aws.user_data = File.read("userdata.txt")
       override.ssh.username = "centos"
-      override.ssh.private_key_path = ENV[:AWS_PRIVATE_KEY_PATH]
+      override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
       override.vm.box = "dummy"
     end
     mgmt.vm.provider :virtualbox do |vb|
