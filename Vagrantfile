@@ -9,7 +9,20 @@ Vagrant.configure(2) do |config|
     mgmt.vm.box = "bento/centos-7.2"
     mgmt.vm.network "private_network", ip: "192.168.33.254"
     mgmt.vm.hostname = "mgmt"
-    mgmt.vm.provider "virtualbox" do |vb|
+    mgmt.vm.provider :aws do |aws, override|
+      aws.access_key_id = ENV[:AWS_KEY_ID]
+      aws.secret_access_key = ENV[:AWS_ACCESS_KEY]
+      aws.session_token = ENV[:AWS_SESSION_TOKEN]
+      aws.keypair_name = ENV[:AWS_KEYPAIR_NAME]
+      aws.instance_type = "m3.medium"
+      aws.ami = "ami-d2c924b2"
+      aws.region = 'us-west-2'
+      aws.user_data = File.read("userdata.txt")
+      override.ssh.username = "centos"
+      override.ssh.private_key_path = ENV[:AWS_PRIVATE_KEY_PATH]
+      override.vm.box = "dummy"
+    end
+    mgmt.vm.provider :virtualbox do |vb|
       vb.memory = "1024"
     end
     mgmt.vm.provision "shell", inline: <<-SHELL
@@ -26,13 +39,13 @@ Vagrant.configure(2) do |config|
       chef-server-ctl user-create admin admin admin dmlb2000@gmail.com password --filename /vagrant/.chef/admin.pem
       chef-server-ctl org-create ecology 'Ecology Organization' --filename /vagrant/.chef/chef-validator.pem
       chef-server-ctl org-user-add ecology admin --admin
-      su - vagrant -c 'cd /vagrant; knife ssl fetch'
-      su - vagrant -c 'mkdir -p /vagrant/clients'
+      su - #{config.ssh.username} -c 'cd /vagrant; knife ssl fetch'
+      su - #{config.ssh.username} -c 'mkdir -p /vagrant/clients'
       for node in `seq 0 3` ; do
-        su - vagrant -c 'cd /vagrant; knife client create n'${node}' -d > clients/n'${node}'.pem'
+        su - #{config.ssh.username} -c 'cd /vagrant; knife client create n'${node}' -d > clients/n'${node}'.pem'
       done
-      su - vagrant -c 'cd /vagrant; knife client create head -d > clients/head.pem'
-      su - vagrant -c 'cd /vagrant; HOME=/vagrant knife upload /'
+      su - #{config.ssh.username} -c 'cd /vagrant; knife client create head -d > clients/head.pem'
+      su - #{config.ssh.username} -c 'cd /vagrant; HOME=/vagrant knife upload /'
     SHELL
   end
 

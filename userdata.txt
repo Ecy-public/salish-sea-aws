@@ -1,0 +1,3 @@
+#!/bin/bash -xe
+exec 1>/root/cloud-init.log 2>&1
+sed -i '/^Defaults.*requiretty/ D' /etc/sudoers
