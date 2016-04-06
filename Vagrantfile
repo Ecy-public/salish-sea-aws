@@ -22,10 +22,13 @@ Vagrant.configure(2) do |config|
       override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
       override.vm.box = "dummy"
     end
-    mgmt.vm.provider :virtualbox do |vb|
-      vb.memory = "1024"
+    mgmt.vm.provider :libvirt do |libvirt|
+      libvirt.memory = '1024'
     end
-    mgmt.vm.provision "shell", inline: <<-SHELL
+    mgmt.vm.provider :virtualbox do |vb|
+      vb.memory = '1024'
+    end
+    mgmt.vm.provision "shell", privileged: false, inline: <<-SHELL
       # need to install chef-server manually
       set -xe
       if ! test -e /vagrant/chef-server.rpm ; then
@@ -33,19 +36,21 @@ Vagrant.configure(2) do |config|
         exit -1
       fi
 
-      yum -y update
-      yum -y install /vagrant/chef-server.rpm /vagrant/vagrant.rpm /vagrant/chefdk.rpm vim
-      chef-server-ctl reconfigure
-      chef-server-ctl user-create admin admin admin dmlb2000@gmail.com password --filename /vagrant/.chef/admin.pem
-      chef-server-ctl org-create ecology 'Ecology Organization' --filename /vagrant/.chef/chef-validator.pem
-      chef-server-ctl org-user-add ecology admin --admin
-      su - #{config.ssh.username} -c 'cd /vagrant; knife ssl fetch'
-      su - #{config.ssh.username} -c 'mkdir -p /vagrant/clients'
+      sudo yum -y update
+      sudo yum -y install /vagrant/chef-server.rpm /vagrant/vagrant.rpm /vagrant/chefdk.rpm vim nfs-server
+      sudo chef-server-ctl reconfigure
+      sudo chef-server-ctl user-create admin admin admin dmlb2000@gmail.com password --filename /vagrant/.chef/admin.pem
+      sudo chef-server-ctl org-create ecology 'Ecology Organization' --filename /vagrant/.chef/chef-validator.pem
+      sudo chef-server-ctl org-user-add ecology admin --admin
+      export HOME=/vagrant
+      cd ~
+      knife ssl fetch
+      mkdir -p /vagrant/clients
       for node in `seq 0 3` ; do
-        su - #{config.ssh.username} -c 'cd /vagrant; knife client create n'${node}' -d > clients/n'${node}'.pem'
+        knife client create n${node} -d > clients/n${node}.pem
       done
-      su - #{config.ssh.username} -c 'cd /vagrant; knife client create head -d > clients/head.pem'
-      su - #{config.ssh.username} -c 'cd /vagrant; HOME=/vagrant knife upload /'
+      knife client create head -d > clients/head.pem
+      knife upload /
     SHELL
   end
 
@@ -72,6 +77,9 @@ Vagrant.configure(2) do |config|
     head.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
+    head.vm.provider :libvirt do |libvirt|
+      libvirt.memory = '1024'
+    end
     head.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "head")\
                                                    .gsub(/@@CLUSTER@@/, cluster)\
                                                    .gsub(/@@RECIPE@@/, 'head')
@@ -86,6 +94,9 @@ Vagrant.configure(2) do |config|
       node.vm.hostname = "n#{x}"
       node.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
+      end
+      node.vm.provider :libvirt do |libvirt|
+        libvirt.memory = '1024'
       end
       node.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "n#{x}")\
                                                      .gsub(/@@CLUSTER@@/, cluster)\
