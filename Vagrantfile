@@ -17,7 +17,7 @@ Vagrant.configure(2) do |config|
       aws.instance_type = "m3.medium"
       aws.ami = "ami-d2c924b2"
       aws.region = 'us-west-2'
-      aws.user_data = File.read("userdata.txt")
+      aws.user_data = File.read("mgmtuserdata.txt")
       override.ssh.username = "centos"
       override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
       override.vm.box = "dummy"
@@ -74,6 +74,19 @@ Vagrant.configure(2) do |config|
     head.vm.box = "bento/centos-7.2"
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head"
+    mgmt.vm.provider :aws do |aws, override|
+      aws.access_key_id = ENV['AWS_KEY_ID']
+      aws.secret_access_key = ENV['AWS_ACCESS_KEY']
+      aws.session_token = ENV['AWS_SESSION_TOKEN']
+      aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
+      aws.instance_type = "m3.medium"
+      aws.ami = "ami-d2c924b2"
+      aws.region = 'us-west-2'
+      aws.user_data = File.read("userdata.txt")
+      override.ssh.username = "centos"
+      override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
+      override.vm.box = "dummy"
+    end
     head.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
@@ -92,6 +105,19 @@ Vagrant.configure(2) do |config|
       node.vm.box = "bento/centos-7.2"
       node.vm.network "private_network", ip: "192.168.33.#{x+10}"
       node.vm.hostname = "n#{x}"
+      mgmt.vm.provider :aws do |aws, override|
+        aws.access_key_id = ENV['AWS_KEY_ID']
+        aws.secret_access_key = ENV['AWS_ACCESS_KEY']
+        aws.session_token = ENV['AWS_SESSION_TOKEN']
+        aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
+        aws.instance_type = "m3.medium"
+        aws.ami = "ami-d2c924b2"
+        aws.region = 'us-west-2'
+        aws.user_data = File.read("userdata.txt")
+        override.ssh.username = "centos"
+        override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
+        override.vm.box = "dummy"
+      end
       node.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
       end
