@@ -74,7 +74,7 @@ Vagrant.configure(2) do |config|
     head.vm.box = "bento/centos-7.2"
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head"
-    mgmt.vm.provider :aws do |aws, override|
+    head.vm.provider :aws do |aws, override|
       aws.access_key_id = ENV['AWS_KEY_ID']
       aws.secret_access_key = ENV['AWS_ACCESS_KEY']
       aws.session_token = ENV['AWS_SESSION_TOKEN']
@@ -105,7 +105,7 @@ Vagrant.configure(2) do |config|
       node.vm.box = "bento/centos-7.2"
       node.vm.network "private_network", ip: "192.168.33.#{x+10}"
       node.vm.hostname = "n#{x}"
-      mgmt.vm.provider :aws do |aws, override|
+      node.vm.provider :aws do |aws, override|
         aws.access_key_id = ENV['AWS_KEY_ID']
         aws.secret_access_key = ENV['AWS_ACCESS_KEY']
         aws.session_token = ENV['AWS_SESSION_TOKEN']
