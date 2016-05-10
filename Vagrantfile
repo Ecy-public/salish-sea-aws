@@ -70,10 +70,10 @@ Vagrant.configure(2) do |config|
     chef-client -S https://mgmt/organizations/ecology -r 'role[cluster-@@CLUSTER@@],recipe[ecology-cluster::@@RECIPE@@]'
   SHELL
 
-  config.vm.define "head" do |head|
+  config.vm.define "head-#{cluster}" do |head|
     head.vm.box = "bento/centos-7.2"
     head.vm.network "private_network", ip: "192.168.33.253"
-    head.vm.hostname = "head"
+    head.vm.hostname = "head-#{cluster}"
     head.vm.provider :aws do |aws, override|
       aws.access_key_id = ENV['AWS_KEY_ID']
       aws.secret_access_key = ENV['AWS_ACCESS_KEY']
@@ -93,7 +93,7 @@ Vagrant.configure(2) do |config|
     head.vm.provider :libvirt do |libvirt|
       libvirt.memory = '1024'
     end
-    head.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "head")\
+    head.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "head-#{cluster}")\
                                                    .gsub(/@@CLUSTER@@/, cluster)\
                                                    .gsub(/@@RECIPE@@/, 'head')
   end
@@ -101,10 +101,10 @@ Vagrant.configure(2) do |config|
   # this is a bit complicated but it produces array ["0", "1",..."3"]
   suffixes = (0..7).to_a
   suffixes.each do |x|
-    config.vm.define "n#{x}" do |node|
+    config.vm.define "n#{x}-#{cluster}" do |node|
       node.vm.box = "bento/centos-7.2"
       node.vm.network "private_network", ip: "192.168.33.#{x+10}"
-      node.vm.hostname = "n#{x}"
+      node.vm.hostname = "n#{x}-#{cluster}"
       node.vm.provider :aws do |aws, override|
         aws.access_key_id = ENV['AWS_KEY_ID']
         aws.secret_access_key = ENV['AWS_ACCESS_KEY']
@@ -124,7 +124,7 @@ Vagrant.configure(2) do |config|
       node.vm.provider :libvirt do |libvirt|
         libvirt.memory = '1024'
       end
-      node.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "n#{x}")\
+      node.vm.provision "shell", inline: shell_script.gsub(/@@NODE@@/, "n#{x}-#{cluster}")\
                                                      .gsub(/@@CLUSTER@@/, cluster)\
                                                      .gsub(/@@RECIPE@@/, 'compute')
     end
