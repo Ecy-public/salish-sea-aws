@@ -1,4 +1,5 @@
 #!/bin/bash -xe
 exec 1>/root/cloud-init.log 2>&1
 sed -i '/^Defaults.*requiretty/ D' /etc/sudoers
+hostname @@NODE@@.salishsea.wa.gov
 echo 172.31.33.15 mgmt mgmt.salishsea.wa.gov >> /etc/hosts
