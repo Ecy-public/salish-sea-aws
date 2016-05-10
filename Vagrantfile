@@ -79,7 +79,7 @@ Vagrant.configure(2) do |config|
       aws.secret_access_key = ENV['AWS_ACCESS_KEY']
       aws.session_token = ENV['AWS_SESSION_TOKEN']
       aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
-      aws.instance_type = "m3.medium"
+      aws.instance_type = "c4.4xlarge"
       aws.ami = "ami-d2c924b2"
       aws.region = 'us-west-2'
       aws.user_data = File.read("userdata.txt")
@@ -99,7 +99,7 @@ Vagrant.configure(2) do |config|
   end
 
   # this is a bit complicated but it produces array ["0", "1",..."3"]
-  suffixes = (0..3).to_a
+  suffixes = (0..7).to_a
   suffixes.each do |x|
     config.vm.define "n#{x}" do |node|
       node.vm.box = "bento/centos-7.2"
@@ -110,7 +110,7 @@ Vagrant.configure(2) do |config|
         aws.secret_access_key = ENV['AWS_ACCESS_KEY']
         aws.session_token = ENV['AWS_SESSION_TOKEN']
         aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
-        aws.instance_type = "m3.medium"
+        aws.instance_type = "c4.4xlarge"
         aws.ami = "ami-d2c924b2"
         aws.region = 'us-west-2'
         aws.user_data = File.read("userdata.txt")
