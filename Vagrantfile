@@ -56,20 +56,20 @@ Vagrant.configure(2) do |config|
 
   shell_script = <<-SHELL
     set -xe
-    echo '192.168.33.254 mgmt' >> /etc/hosts
+    echo '172.31.33.15 mgmt.salishsea.wa.gov mgmt' >> /etc/hosts
     yum -y update
     yum -y install /vagrant/chef.rpm
-    knife ssl fetch -s https://mgmt/organizations/ecology
+    knife ssl fetch -s https://mgmt.salishsea.wa.gov/organizations/ecology
     mkdir -p /etc/chef
     cp -r /root/.chef/trusted_certs /etc/chef/
     cat /vagrant/clients/@@NODE@@.pem > /etc/chef/client.pem
-    if knife node show -s https://mgmt/organizations/ecology -u @@NODE@@ @@NODE@@ ; then
-      knife node delete -s https://mgmt/organizations/ecology --yes -u @@NODE@@ @@NODE@@
+    if knife node show -s https://mgmt.salishsea.wa.gov/organizations/ecology -u @@NODE@@ @@NODE@@ ; then
+      knife node delete -s https://mgmt.salishsea.wa.gov/organizations/ecology --yes -u @@NODE@@ @@NODE@@
     fi
-    knife node create -s https://mgmt/organizations/ecology -u @@NODE@@ -d @@NODE@@
-    chef-client -S https://mgmt/organizations/ecology -r 'role[cluster-@@CLUSTER@@],recipe[ecology-cluster::@@RECIPE@@]'
+    knife node create -s https://mgmt.salishsea.wa.gov/organizations/ecology -u @@NODE@@ -d @@NODE@@
+    chef-client -N @@NODE@@ -S https://mgmt.salishsea.wa.gov/organizations/ecology -r 'role[cluster-@@CLUSTER@@],recipe[ecology-cluster::@@RECIPE@@]'
   SHELL
-
+  userdata = File.read("userdata.txt")
   config.vm.define "head-#{cluster}" do |head|
     head.vm.box = "bento/centos-7.2"
     head.vm.network "private_network", ip: "192.168.33.253"
@@ -79,10 +79,10 @@ Vagrant.configure(2) do |config|
       aws.secret_access_key = ENV['AWS_ACCESS_KEY']
       aws.session_token = ENV['AWS_SESSION_TOKEN']
       aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
-      aws.instance_type = "m3.medium"
+      aws.instance_type = "c4.4xlarge"
       aws.ami = "ami-d2c924b2"
       aws.region = 'us-west-2'
-      aws.user_data = File.read("userdata.txt")
+      aws.user_data = userdata.gsub(/@@NODE@@/, "head-#{cluster}")
       override.ssh.username = "centos"
       override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
       override.vm.box = "dummy"
@@ -99,7 +99,7 @@ Vagrant.configure(2) do |config|
   end
 
   # this is a bit complicated but it produces array ["0", "1",..."3"]
-  suffixes = (0..3).to_a
+  suffixes = (0..7).to_a
   suffixes.each do |x|
     config.vm.define "n#{x}-#{cluster}" do |node|
       node.vm.box = "bento/centos-7.2"
@@ -110,10 +110,10 @@ Vagrant.configure(2) do |config|
         aws.secret_access_key = ENV['AWS_ACCESS_KEY']
         aws.session_token = ENV['AWS_SESSION_TOKEN']
         aws.keypair_name = ENV['AWS_KEYPAIR_NAME']
-        aws.instance_type = "m3.medium"
+        aws.instance_type = "c4.4xlarge"
         aws.ami = "ami-d2c924b2"
         aws.region = 'us-west-2'
-        aws.user_data = File.read("userdata.txt")
+        aws.user_data = userdata.gsub(/@@NODE@@/, "n#{x}-#{cluster}")
         override.ssh.username = "centos"
         override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
         override.vm.box = "dummy"
