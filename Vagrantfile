@@ -75,6 +75,12 @@ Vagrant.configure(2) do |config|
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head-#{cluster}"
     head.vm.provider :aws do |aws, override|
+      aws.block_device_mapping = [
+        { 'DeviceName' => '/dev/sdb', 'Ebs.VolumeSize' => 1000 },
+        { 'DeviceName' => '/dev/sdc', 'Ebs.VolumeSize' => 1000 },
+        { 'DeviceName' => '/dev/sdd', 'Ebs.VolumeSize' => 1000 },
+        { 'DeviceName' => '/dev/sde', 'Ebs.VolumeSize' => 1000 },
+      ]
       aws.access_key_id = ENV['AWS_KEY_ID']
       aws.secret_access_key = ENV['AWS_ACCESS_KEY']
       aws.session_token = ENV['AWS_SESSION_TOKEN']
