@@ -1,3 +1,6 @@
 #!/bin/bash -xe
 exec 1>/root/cloud-init.log 2>&1
 sed -i '/^Defaults.*requiretty/ D' /etc/sudoers
+hostname mgmt.salishsea.wa.gov
+echo mgmt.salishsea.wa.gov > /etc/hostname
+echo $(ip a show dev eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d/ -f1) mgmt.salishsea.wa.gov >> /etc/hosts
