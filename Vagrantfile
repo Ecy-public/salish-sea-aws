@@ -75,6 +75,7 @@ Vagrant.configure(2) do |config|
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head-#{cluster}"
     head.vm.provider :aws do |aws, override|
+      aws.instance_type = "c4.4xlarge"
       aws.block_device_mapping = [
         { 'DeviceName' => '/dev/sdb', 'Ebs.VolumeSize' => 1000 },
         { 'DeviceName' => '/dev/sdc', 'Ebs.VolumeSize' => 1000 },
