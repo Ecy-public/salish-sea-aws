@@ -13,7 +13,6 @@ Vagrant.configure(2) do |config|
     aws.instance_type = "m3.medium"
     aws.ami = "ami-d2c924b2"
     aws.region = 'us-west-2'
-    aws.user_data = File.read("userdata.txt")
     override.ssh.username = "centos"
     override.ssh.private_key_path = ENV['AWS_PRIVATE_KEY_PATH']
     override.vm.box = "dummy"
@@ -22,6 +21,9 @@ Vagrant.configure(2) do |config|
     mgmt.vm.box = "bento/centos-7.2"
     mgmt.vm.network "private_network", ip: "192.168.33.254"
     mgmt.vm.hostname = "mgmt"
+    mgmt.vm.provider :aws do |aws, override|
+      aws.user_data = File.read("userdata.txt").gsub(/@@NODE@@/, 'mgmt')
+    end
     mgmt.vm.provider :libvirt do |libvirt|
       libvirt.memory = '1024'
     end
@@ -75,6 +77,7 @@ Vagrant.configure(2) do |config|
     head.vm.network "private_network", ip: "192.168.33.253"
     head.vm.hostname = "head-#{cluster}"
     head.vm.provider :aws do |aws, override|
+      aws.user_data = File.read("userdata.txt").gsub(/@@NODE@@/, "head-#{cluster}")
       aws.block_device_mapping = [
         { 'DeviceName' => '/dev/sdb', 'Ebs.VolumeSize' => 1000 },
         { 'DeviceName' => '/dev/sdc', 'Ebs.VolumeSize' => 1000 },
@@ -100,6 +103,9 @@ Vagrant.configure(2) do |config|
       node.vm.box = "bento/centos-7.2"
       node.vm.network "private_network", ip: "192.168.33.#{x+10}"
       node.vm.hostname = "n#{x}-#{cluster}"
+      node.vm.provider :aws do |aws, override|
+        aws.user_data = File.read("userdata.txt").gsub(/@@NODE@@/, "n#{x}-#{cluster}")
+      end
       node.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
       end
