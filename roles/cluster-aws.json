@@ -5,7 +5,8 @@
   "default_attributes": {
     "ecology-cluster": {
       "cluster": "aws",
-      "interface": "eth0"
+      "interface": "eth0",
+      "home-devices": ["/dev/xvdb", "/dev/xvdc", "/dev/xvdd", "/dev/xvde"]
     }
   },
   "override_attributes": {},
