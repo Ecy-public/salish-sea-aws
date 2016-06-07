@@ -78,6 +78,7 @@ Vagrant.configure(2) do |config|
     head.vm.hostname = "head-#{cluster}"
     head.vm.provider :aws do |aws, override|
       aws.user_data = File.read("userdata.txt").gsub(/@@NODE@@/, "head-#{cluster}")
+      aws.instance_type = "c4.4xlarge"
       aws.block_device_mapping = [
         { 'DeviceName' => '/dev/sdb', 'Ebs.VolumeSize' => 1000 },
         { 'DeviceName' => '/dev/sdc', 'Ebs.VolumeSize' => 1000 },
@@ -105,6 +106,7 @@ Vagrant.configure(2) do |config|
       node.vm.hostname = "n#{x}-#{cluster}"
       node.vm.provider :aws do |aws, override|
         aws.user_data = File.read("userdata.txt").gsub(/@@NODE@@/, "n#{x}-#{cluster}")
+        aws.instance_type = "c4.4xlarge"
       end
       node.vm.provider "virtualbox" do |vb|
         vb.memory = "1024"
